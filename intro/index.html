@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAMNING - 个人介绍</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;color:#1a1a2e;line-height:1.8;min-height:100vh;overflow-x:hidden}
+        .animated-bg{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;background:linear-gradient(135deg,#dbeafe 0%,#e0e7ff 20%,#cffafe 40%,#ede9fe 60%,#dbeafe 80%,#e0f2fe 100%);background-size:400% 400%;animation:gf 12s ease infinite}
+        @keyframes gf{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+        .ctn{width:100%;max-width:880px;margin:0 auto;padding:0 24px}
+        .nav-bar{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.6);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.7)}
+        .nav-inner{display:flex;justify-content:space-between;align-items:center;height:60px}
+        .nav-logo{font-size:18px;font-weight:700;color:#1a1a2e;text-decoration:none;display:flex;align-items:center;gap:10px}
+        .nav-logo .dot{width:10px;height:10px;background:#8b5cf6;border-radius:2px}
+        .nav-links{display:flex;gap:16px}
+        .nav-links a{font-size:14px;font-weight:500;color:#64748b;text-decoration:none;transition:color .2s}
+        .nav-links a:hover{color:#1a1a2e}
+        .glass-card{background:rgba(255,255,255,.55);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.7);border-radius:18px;box-shadow:0 4px 30px rgba(0,0,0,.06);transition:all .3s ease}
+        .glass-card:hover{box-shadow:0 8px 40px rgba(0,0,0,.1);transform:translateY(-2px)}
+        .tag{display:inline-block;padding:4px 12px;border-radius:6px;font-size:12px;font-weight:500;background:rgba(245,245,245,.6);color:#525252;margin:2px 4px 2px 0;border:1px solid rgba(255,255,255,.4)}
+        .card-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+        @media(max-width:768px){.card-grid{grid-template-columns:1fr}}
+        .card-inner{padding:28px}
+        .card-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#94a3b8;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid rgba(0,0,0,.04)}
+        .bio-line{font-size:14px;color:#475569;line-height:2}
+        .bio-line .highlight{color:#7c3aed;font-weight:600}
+        .bio-divider{height:1px;background:rgba(0,0,0,.06);margin:12px 0;border:none}
+        .notice-area{background:rgba(255,255,255,.3);border:1px dashed rgba(0,0,0,.1);border-radius:10px;padding:16px;font-size:13px;color:#94a3b8;text-align:center}
+        .back-link{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:#94a3b8;text-decoration:none;margin-bottom:28px;transition:color .2s}
+        .back-link:hover{color:#475569}
+        a,button{cursor:pointer}
+        footer{background:rgba(255,255,255,.4);backdrop-filter:blur(16px);border-top:1px solid rgba(255,255,255,.5)}
+        .gallery-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+        @media(max-width:768px){.gallery-grid{grid-template-columns:repeat(2,1fr)}}
+        .gallery-item{border-radius:12px;overflow:hidden;aspect-ratio:1;cursor:pointer;transition:transform .2s}
+        .gallery-item:hover{transform:scale(1.03)}
+        .gallery-item img{width:100%;height:100%;object-fit:cover}
+        .gallery-empty{grid-column:1/-1;text-align:center;padding:40px;color:#94a3b8;font-size:13px;border:2px dashed rgba(0,0,0,.08);border-radius:12px}
+        .lightbox{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;cursor:pointer}
+        .lightbox.show{opacity:1;pointer-events:auto}
+        .lightbox img{max-width:90%;max-height:90%;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,.5)}
+    
+
+        .locked-section{position:relative}
+        .lock-overlay{position:absolute;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;
+            background:rgba(255,255,255,.6);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+            border-radius:20px;transition:opacity .5s,visibility .5s}
+        .lock-overlay.unlocked{opacity:0;visibility:hidden;pointer-events:none}
+        .lock-box{text-align:center;padding:32px;background:rgba(255,255,255,.75);backdrop-filter:blur(20px);
+            border:1px solid rgba(255,255,255,.8);border-radius:18px;box-shadow:0 8px 40px rgba(0,0,0,.08);max-width:320px;width:90%}
+        .lock-box .lock-icon{font-size:36px;margin-bottom:12px}
+        .lock-box .lock-hint{font-size:14px;color:#64748b;margin-bottom:16px;font-weight:500}
+        .lock-box .lock-hint span{font-family:monospace;font-size:16px;color:#0f172a;font-weight:700;letter-spacing:2px;background:rgba(59,130,246,.08);padding:2px 6px;border-radius:4px}
+        .lock-box .lock-input{width:100%;padding:10px 16px;border:1.5px solid rgba(0,0,0,.1);border-radius:10px;
+            font-size:14px;text-align:center;outline:none;background:rgba(255,255,255,.8);transition:border-color .2s}
+        .lock-box .lock-input:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+        .lock-box .lock-err{font-size:12px;color:#ef4444;margin-top:8px;visibility:hidden}
+        .lock-box .lock-err.show{visibility:visible}
+</style>
+    <link rel="stylesheet" href="/assets/common.css">
+<style>.ico{width:1.15em;height:1.15em;vertical-align:-.2em;display:inline-block;position:relative;top:-.02em}</style>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="g-heart" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fb7185"/><stop offset="1" stop-color="#ef4444"/></linearGradient><linearGradient id="g-heart-f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fb7185" stop-opacity=".55"/><stop offset="1" stop-color="#ef4444" stop-opacity=".08"/></linearGradient><linearGradient id="g-bolt" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbbf24"/><stop offset="1" stop-color="#f97316"/></linearGradient><linearGradient id="g-moon" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#818cf8"/><stop offset="1" stop-color="#6366f1"/></linearGradient><linearGradient id="g-sunrise" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fb923c"/><stop offset="1" stop-color="#f97316"/></linearGradient><linearGradient id="g-coffee" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d97706"/><stop offset="1" stop-color="#b45309"/></linearGradient><linearGradient id="g-cap" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#60a5fa"/><stop offset="1" stop-color="#2563eb"/></linearGradient><linearGradient id="g-music" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a78bfa"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient><linearGradient id="g-head" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c4b5fd"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient><linearGradient id="g-cloud" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7dd3fc"/><stop offset="1" stop-color="#0ea5e9"/></linearGradient><linearGradient id="g-rocket" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fb7185"/><stop offset="1" stop-color="#f43f5e"/></linearGradient><linearGradient id="g-flag" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6ee7b7"/><stop offset="1" stop-color="#10b981"/></linearGradient><linearGradient id="g-pin" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fda4af"/><stop offset="1" stop-color="#f43f5e"/></linearGradient><linearGradient id="g-clip" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#93c5fd"/><stop offset="1" stop-color="#3b82f6"/></linearGradient><linearGradient id="g-sun2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fcd34d"/><stop offset="1" stop-color="#f59e0b"/></linearGradient><linearGradient id="g-octo" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c4b5fd"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient><linearGradient id="g-bubble" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#93c5fd"/><stop offset="1" stop-color="#3b82f6"/></linearGradient><linearGradient id="g-mail" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#93c5fd"/><stop offset="1" stop-color="#2563eb"/></linearGradient><linearGradient id="g-user" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a5b4fc"/><stop offset="1" stop-color="#6366f1"/></linearGradient><linearGradient id="g-books" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a5b4fc"/><stop offset="1" stop-color="#6366f1"/></linearGradient><linearGradient id="g-folder" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fcd34d"/><stop offset="1" stop-color="#f59e0b"/></linearGradient><linearGradient id="g-robot" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#818cf8"/><stop offset="1" stop-color="#6366f1"/></linearGradient><linearGradient id="g-book" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#93c5fd"/><stop offset="1" stop-color="#3b82f6"/></linearGradient><linearGradient id="g-note" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#93c5fd"/><stop offset="1" stop-color="#2563eb"/></linearGradient><linearGradient id="g-phone" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#67e8f9"/><stop offset="1" stop-color="#0891b2"/></linearGradient><linearGradient id="g-signal" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6ee7b7"/><stop offset="1" stop-color="#059669"/></linearGradient><linearGradient id="g-disk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#93c5fd"/><stop offset="1" stop-color="#3b82f6"/></linearGradient><linearGradient id="g-lock" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a5b4fc"/><stop offset="1" stop-color="#6366f1"/></linearGradient></defs></svg>
+</head>
+<body>
+    <div class="page-loader" id="pageLoader"><div class="loader-ring"></div><div class="loader-label">加载中...</div></div><div class="animated-bg"></div>
+
+    <div class="nav-bar">
+        <div class="ctn nav-inner">
+            <a href="/" class="nav-logo"><span class="dot"></span> LAMNING</a>
+            <div class="nav-links"><a href="/">首页</a></div>
+        </div>
+    </div>
+
+    <div class="ctn slide-up" style="padding-top:40px;padding-bottom:80px;">
+        <a href="/" class="back-link">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+            返回首页
+        </a>
+
+        <div class="card-grid">
+            <!-- 名片卡 -->
+            <div class="glass-card card-inner" style="grid-column:1/-1;">
+                <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
+                    <img src="/assets/avatar.png" alt="avatar" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,.8);box-shadow:0 4px 20px rgba(0,0,0,.1);" />
+                    <div>
+                        <h1 style="font-size:26px;font-weight:700;letter-spacing:-.02em;margin-bottom:4px;" id="pName">LAMNING</h1>
+                        <p style="font-size:14px;color:#64748b;" id="pBio">个人空间 · 持续构建中</p>
+                        <div style="margin-top:10px;" id="pTags"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 联系方式 -->
+            <div class="glass-card card-inner">
+                <div class="card-title">联系方式</div>
+                <div style="display:flex;flex-direction:column;gap:12px;">
+                    <a id="cGithub" href="https://github.com/your-account" target="_blank" style="display:flex;align-items:center;gap:10px;font-size:14px;color:#374151;text-decoration:none;padding:8px 12px;border-radius:10px;transition:background .2s;" onmouseover="this.style.background='rgba(0,0,0,.04)'" onmouseout="this.style.background='transparent'">
+                        <span style="font-size:18px;">🐙</span> GitHub
+                    </a>
+                    <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:#374151;padding:8px 12px;cursor:pointer;border-radius:10px;transition:background .2s;" onclick="copyText('[qq removed]')" onmouseover="this.style.background='rgba(0,0,0,.04)'" onmouseout="this.style.background='transparent'">
+                        <span style="font-size:18px;">💬</span> <span id="cQQ">QQ: [qq removed]</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:#374151;padding:8px 12px;cursor:pointer;border-radius:10px;transition:background .2s;" onclick="copyText('[email removed]')" onmouseover="this.style.background='rgba(0,0,0,.04)'" onmouseout="this.style.background='transparent'">
+                        <span style="font-size:18px;">✉️</span> <span id="cEmail">[email removed]</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 更新公告 -->
+            <div class="glass-card card-inner">
+                <div class="card-title">更新公告</div>
+                <div class="notice-area" id="announcement">📢 这里可以发布更新公告</div>
+            </div>
+
+            <!-- 扩列条 + 图库 (locked) -->
+            <div class="locked-section" style="grid-column:1/-1;position:relative;display:flex;flex-direction:column;gap:20px;">
+                <div class="lock-overlay" id="furryLock">
+                    <div class="lock-box">
+                        <div class="lock-icon"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="url(#g-lock)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15" r="1.5"/></svg></div>
+                        <div class="lock-hint">填入补全解锁：<span>f__ __ry</span></div>
+                        <input type="text" class="lock-input" id="furryInput" placeholder="f __ __ ry" maxlength="6" autocomplete="off">
+                        <div class="lock-err" id="furryErr">再想想？</div>
+                    </div>
+                </div>
+                <!-- 扩列条 -->
+                <div class="glass-card card-inner" style="grid-column:1/-1;">
+                    <div class="card-title">扩列条</div>
+                    <div id="bioContent"></div>
+                </div>
+                <!-- 图库 -->
+                <div class="glass-card card-inner" style="grid-column:1/-1;">
+                    <div class="card-title">图库</div>
+                    <div class="gallery-grid" id="galleryGrid">
+                        <div class="gallery-empty">📷 暂无图片，可通过管理后台上传</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="lightbox" id="lightbox" onclick="this.classList.remove('show')">
+        <img id="lightboxImg" src="" alt="preview">
+    </div>
+
+    <footer>
+        <div class="ctn" style="display:flex;justify-content:space-between;align-items:center;height:60px;font-size:12px;color:#94a3b8;">
+            <span>&copy; 2026 LAMNING</span>
+            <a href="/" style="color:#94a3b8;text-decoration:none;">返回首页</a>
+        </div>
+    </footer>
+
+    <script>
+        fetch('/api/content').then(r=>r.json()).then(d=>{
+            document.getElementById('pName').textContent=d.profile_name||'LAMNING';
+            document.getElementById('pBio').textContent=d.profile_bio||'个人空间 · 持续构建中';
+            const tags=d.profile_tags||['人工智能','小米生态','INFJ'];
+            document.getElementById('pTags').innerHTML=tags.map(t=>'<span class="tag">'+t+'</span>').join('');
+            if(d.contact_github)document.getElementById('cGithub').href=d.contact_github;
+            document.getElementById('cQQ').textContent='QQ: '+(d.contact_qq||'[qq removed]');
+            document.getElementById('cEmail').textContent=d.contact_email||'[email removed]';
+            const ann=d.announcement||'';
+            if(ann)document.getElementById('announcement').innerHTML='📢 '+ann.replace(/\n/g,'<br>');
+            const bio=d.bio_content||'';
+            if(bio){
+                const lines=bio.split(/\n|\\n/);
+                let html='';
+                lines.forEach(line=>{
+                    if(line==='---'){html+='<hr class="bio-divider">';}
+                    else if(line.includes('2026年置顶扩列条')||line.includes('INFJ-P')||line.includes('游戏：')||line.includes('音乐')||line.includes('关于我：')){html+='<div class="bio-line"><span class="highlight">'+line+'</span></div>';}
+                    else{html+='<div class="bio-line">'+line+'</div>';}
+                });
+                document.getElementById('bioContent').innerHTML=html;
+            }
+            const gallery=d.gallery||[];
+            if(gallery.length){
+                document.getElementById('galleryGrid').innerHTML=gallery.map(img=>
+                    '<div class="gallery-item" onclick="openLightbox(\''+img+'\')"><img src="'+img+'" alt="photo" loading="lazy"></div>'
+                ).join('');
+            }
+        }).catch(()=>{});
+
+        function openLightbox(src){
+            document.getElementById('lightboxImg').src=src;
+            document.getElementById('lightbox').classList.add('show');
+        }
+
+        function copyText(text){
+            navigator.clipboard.writeText(text).then(()=>{
+                const tip=document.createElement('div');
+                tip.textContent='已复制: '+text;
+                tip.style.cssText='position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;padding:10px 24px;border-radius:10px;font-size:13px;z-index:999;opacity:0;transition:opacity .3s;box-shadow:0 4px 20px rgba(0,0,0,.15);';
+                document.body.appendChild(tip);
+                requestAnimationFrame(()=>tip.style.opacity='1');
+                setTimeout(()=>{tip.style.opacity='0';setTimeout(()=>tip.remove(),300)},2000);
+            });
+        }
+    </script>
+
+    <script id="cc-im-sdk" src="https://o.alicdn.com/cloudcallcenter/cc-im-web-widget/index.js?token=9XYGTGWtq2wRr1qQUy0bXxBHQdHawzBFEF0DPnVEIe7Um82thzStiCqzwkhlE7bi6tVwXkhofdqvA9yzf3tnMdssnzrRbn-y">
+
+</script>
+    <script src="/assets/common.js"></script>
+<script>
+/* furry verification */
+(function(){
+    var input = document.getElementById('furryInput');
+    var lock = document.getElementById('furryLock');
+    var err = document.getElementById('furryErr');
+    if(!input) return;
+    // Restore from session
+    if(sessionStorage.getItem('furry_ok')==='1'){lock.classList.add('unlocked');}
+    input.addEventListener('keydown', function(e){
+        if(e.key==='Enter'){
+            var v = input.value.trim().toLowerCase();
+            if(v==='furry'){
+                lock.classList.add('unlocked');
+                sessionStorage.setItem('furry_ok','1');
+            } else {
+                err.classList.add('show');
+                input.value='';
+                setTimeout(function(){err.classList.remove('show');},1500);
+            }
+        }
+    });
+})();</script>
+</body>
+</html>

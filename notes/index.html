@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAMNING - 云笔记</title>
+    <style>
+        .ico{width:1.15em;height:1.15em;vertical-align:-.2em;display:inline-block;position:relative;top:-.02em}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:linear-gradient(135deg,#f8fafc,#e2e8f0);min-height:100vh;margin:0}
+        .container{max-width:960px;margin:0 auto;padding:24px 20px}
+        .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px}
+        .header h1{font-size:28px;font-weight:700;color:#0f172a;margin:0;display:flex;align-items:center;gap:10px}
+        .header h1 svg{width:28px;height:28px}
+        .btn{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .25s;white-space:nowrap;flex-shrink:0}
+        .btn-primary{background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff}
+        .btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(59,130,246,.35)}
+        .btn-danger{background:rgba(239,68,68,.1);color:#ef4444;padding:6px 12px;font-size:12px;border-radius:8px}
+        .btn-danger:hover{background:rgba(239,68,68,.2)}
+        .btn-back{color:#64748b;text-decoration:none;font-size:14px;font-weight:500;display:flex;align-items:center;gap:4px;transition:color .2s;white-space:nowrap;flex-shrink:0}
+        .btn-back:hover{color:#3b82f6}
+        .notes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+        .note-card{background:rgba(255,255,255,.75);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.7);border-radius:16px;padding:20px;cursor:pointer;transition:all .25s var(--ease-out);position:relative}
+        .note-card:hover{transform:translateY(-3px);box-shadow:0 8px 30px rgba(0,0,0,.08)}
+        .note-title{font-size:16px;font-weight:700;color:#0f172a;margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .note-preview{font-size:13px;color:#64748b;line-height:1.6;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:12px}
+        .note-time{font-size:11px;color:#94a3b8}
+        .note-actions{position:absolute;top:12px;right:12px;opacity:0;transition:opacity .2s}
+        .note-card:hover .note-actions{opacity:1}
+        .empty{text-align:center;padding:80px 20px;color:#94a3b8}
+        .empty svg{width:64px;height:64px;margin-bottom:16px;opacity:.4}
+        .empty p{font-size:15px;margin-bottom:20px}
+        /* 编辑器 */
+        .editor-overlay{position:fixed;inset:0;z-index:200;background:rgba(15,23,42,.3);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s}
+        .editor-overlay.show{opacity:1;pointer-events:auto}
+        .editor-box{background:#fff;border-radius:20px;width:90%;max-width:720px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.15);transform:translateY(16px) scale(.96);transition:transform .35s var(--ease-bounce)}
+        .editor-overlay.show .editor-box{transform:translateY(0) scale(1)}
+        .editor-header{display:flex;align-items:center;gap:12px;padding:20px 24px;border-bottom:1px solid #f1f5f9}
+        .editor-header input{flex:1;border:none;font-size:18px;font-weight:700;color:#0f172a;outline:none;background:transparent}
+        .editor-header input::placeholder{color:#cbd5e1}
+        .editor-body{flex:1;padding:0 24px;overflow-y:auto}
+        .editor-body textarea{width:100%;min-height:300px;border:none;outline:none;font-size:14px;color:#334155;line-height:1.8;resize:none;padding:16px 0;font-family:inherit}
+        .editor-body textarea::placeholder{color:#cbd5e1}
+        .editor-footer{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-top:1px solid #f1f5f9}
+        .editor-footer .save-status{font-size:12px;color:#94a3b8}
+        .editor-footer .save-status.saving{color:#f59e0b}
+        .editor-footer .save-status.saved{color:#22c55e}
+        .editor-footer .save-status.error{color:#ef4444}
+        .editor-toolbar{display:flex;gap:8px;padding:12px 24px;border-bottom:1px solid #f1f5f9;flex-wrap:wrap}
+        .toolbar-btn{background:none;border:1px solid #e2e8f0;border-radius:8px;padding:6px 10px;font-size:12px;color:#64748b;cursor:pointer;transition:all .2s}
+        .toolbar-btn:hover{background:#f1f5f9;color:#334155}
+        .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#0f172a;color:#fff;padding:12px 24px;border-radius:12px;font-size:13px;font-weight:500;opacity:0;transition:all .3s;z-index:999;pointer-events:none;white-space:nowrap;max-width:90vw;width:max-content;min-width:120px;text-align:center}
+        .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+        /* 密码验证 */
+        .auth-overlay{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#f8fafc,#e2e8f0);transition:opacity .4s,visibility .4s}
+        .auth-overlay.hidden{opacity:0;visibility:hidden;pointer-events:none}
+        .auth-box{background:rgba(255,255,255,.85);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.8);border-radius:20px;padding:36px 32px;max-width:340px;width:90%;text-align:center;box-shadow:0 12px 48px rgba(0,0,0,.08)}
+        .auth-icon{font-size:36px;margin-bottom:10px}
+        .auth-title{font-size:20px;font-weight:700;color:#0f172a;margin-bottom:6px}
+        .auth-sub{font-size:13px;color:#64748b;margin-bottom:16px}
+        .auth-hint{font-size:11px;color:#94a3b8;margin-top:6px;font-weight:400}
+        .auth-input{width:100%;padding:12px 16px;border:1px solid #e2e8f0;border-radius:12px;font-size:16px;text-align:center;letter-spacing:4px;outline:none;transition:border-color .2s;box-sizing:border-box}
+        .auth-input:focus{border-color:#3b82f6}
+        .auth-btn{width:100%;margin-top:12px;padding:12px;background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;transition:all .25s}
+        .auth-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(59,130,246,.35)}
+        .auth-err{font-size:12px;color:#ef4444;margin-top:10px;display:none}
+        .auth-err.show{display:block}
+        @media(max-width:640px){
+            .notes-grid{grid-template-columns:1fr}
+            .editor-box{width:95%;max-height:90vh}
+            .header h1{font-size:22px}
+        }
+    </style>
+</head>
+<body>
+<!-- 密码验证 -->
+<div class="auth-overlay" id="authOverlay">
+    <div class="auth-box">
+        <div class="auth-icon">🔐</div>
+        <div class="auth-title">云笔记</div>
+        <div class="auth-sub">请输入访问密码<div class="auth-hint">验证通过后，当天与课程表均无需重复验证</div></div>
+        <input type="password" class="auth-input" id="authInput" placeholder="······" maxlength="20" autofocus>
+        <button class="auth-btn" onclick="authCheck()">解锁笔记</button>
+        <div class="auth-err" id="authErr">密码错误，请重试</div>
+    </div>
+</div>
+<div class="container">
+    <div class="header">
+        <div style="display:flex;align-items:center;gap:16px">
+            <a href="/" class="btn-back">
+                <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                返回
+            </a>
+            <h1>
+                <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="url(#g-note)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>
+                云笔记
+            </h1>
+        </div>
+        <button class="btn btn-primary" onclick="createNote()">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+            新建笔记
+        </button>
+    </div>
+    <div id="notesList" class="notes-grid"></div>
+</div>
+
+<!-- 编辑器弹窗 -->
+<div class="editor-overlay" id="editorOverlay">
+    <div class="editor-box">
+        <div class="editor-header">
+            <input type="text" id="editorTitle" placeholder="笔记标题..." maxlength="100">
+            <button class="btn btn-danger" onclick="deleteCurrentNote()">删除</button>
+            <button class="toolbar-btn" onclick="closeEditor()" style="font-size:16px;padding:6px 10px">✕</button>
+        </div>
+        <div class="editor-toolbar">
+            <button class="toolbar-btn" onclick="insertText('**','**')"><b>B</b></button>
+            <button class="toolbar-btn" onclick="insertText('*','*')"><i>I</i></button>
+            <button class="toolbar-btn" onclick="insertText('## ','')">标题</button>
+            <button class="toolbar-btn" onclick="insertText('- ','')">列表</button>
+            <button class="toolbar-btn" onclick="insertText('`','`')">代码</button>
+            <button class="toolbar-btn" onclick="insertText('> ','')">引用</button>
+            <button class="toolbar-btn" onclick="insertText('---\n','')">分割线</button>
+        </div>
+        <div class="editor-body">
+            <textarea id="editorContent" placeholder="开始写笔记..."></textarea>
+        </div>
+        <div class="editor-footer">
+            <span class="save-status" id="saveStatus">就绪</span>
+            <div style="display:flex;gap:8px">
+                <button class="toolbar-btn" onclick="closeEditor()">取消</button>
+                <button class="btn btn-primary" style="padding:8px 16px;font-size:13px" onclick="saveNote()">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="g-note" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#93c5fd"/><stop offset="1" stop-color="#2563eb"/></linearGradient></defs></svg>
+
+<script>
+var currentNoteId = null;
+var saveTimer = null;
+
+/* ===== 密码验证（2601，与课程表当天同步） ===== */
+function authTodayKey(){
+    var d = new Date();
+    return d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate();
+}
+function authCheck(){
+    var v = document.getElementById('authInput').value.trim();
+    fetch('/api/access-login', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({password: v})
+    }).then(function(r){
+        if (!r.ok) throw new Error('unauthorized');
+        return r.json();
+    }).then(function(d){
+        if (!d.ok || !d.token) throw new Error('unauthorized');
+        sessionStorage.setItem('admin_token', d.token);
+        document.getElementById('authOverlay').classList.add('hidden');
+        var k = authTodayKey();
+        try {
+            localStorage.setItem('sched_auth_' + k, '1');
+            localStorage.setItem('notes_auth_' + k, '1');
+        } catch(e) {}
+        loadNotes();
+    }).catch(function(){
+        var err = document.getElementById('authErr');
+        err.classList.add('show');
+        document.getElementById('authInput').value = '';
+        setTimeout(function(){ err.classList.remove('show'); }, 1500);
+    });
+}
+document.getElementById('authInput').addEventListener('keydown', function(e){
+    if (e.key === 'Enter') authCheck();
+});
+/* 当天已验证（课程表或云笔记任一）则跳过 */
+(function(){
+    var token = sessionStorage.getItem('admin_token') || '';
+    if (!token) return;
+    fetch('/api/session', {headers: {'X-Token': token}}).then(function(r){
+        if (!r.ok) throw new Error('expired');
+        return r.json();
+    }).then(function(d){
+        if (d.ok) document.getElementById('authOverlay').classList.add('hidden');
+    }).catch(function(){ sessionStorage.removeItem('admin_token'); });
+})();
+
+function showToast(msg, dur) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(function(){ t.classList.remove('show'); }, dur || 2000);
+}
+
+function formatTime(ts) {
+    var d = new Date(ts * 1000);
+    var pad = function(n){ return n < 10 ? '0' + n : n; };
+    return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+}
+
+function authHeaders(extra) {
+    var headers = extra || {};
+    headers['X-Token'] = sessionStorage.getItem('admin_token') || '';
+    return headers;
+}
+
+function escapeHtml(value) {
+    return String(value || '').replace(/[&<>"']/g, function(ch){
+        return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch];
+    });
+}
+
+function loadNotes() {
+    fetch('/api/notes', {headers: authHeaders()}).then(function(r){ return r.json(); }).then(function(d){
+        if (!d.ok) return;
+        var list = document.getElementById('notesList');
+        if (d.notes.length === 0) {
+            list.innerHTML = '<div class="empty"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg><p>还没有笔记，点击右上角新建一篇吧</p></div>';
+            return;
+        }
+        list.innerHTML = d.notes.map(function(n){
+            var preview = (n.content || '').replace(/[#*>\-`]/g, '').substring(0, 80);
+            return '<div class="note-card" onclick="openNote(\'' + n.id + '\')">' +
+                '<div class="note-actions"><button class="btn btn-danger" onclick="event.stopPropagation();deleteNote(\'' + n.id + '\')">删除</button></div>' +
+                '<div class="note-title">' + escapeHtml(n.title || '无标题') + '</div>' +
+                '<div class="note-preview">' + escapeHtml(preview || '空白笔记') + '</div>' +
+                '<div class="note-time">更新于 ' + formatTime(n.updated) + '</div></div>';
+        }).join('');
+    }).catch(function(){
+        document.getElementById('notesList').innerHTML = '<div class="empty"><p>加载失败，请刷新重试</p></div>';
+    });
+}
+
+function createNote() {
+    fetch('/api/notes', {
+        method: 'POST',
+        headers: authHeaders({'Content-Type': 'application/json'}),
+        body: JSON.stringify({title: '新笔记', content: ''})
+    }).then(function(r){ return r.json(); }).then(function(d){
+        if (d.ok) {
+            openNote(d.note.id);
+            loadNotes();
+        } else {
+            showToast('创建失败: ' + (d.error || '未知错误'));
+        }
+    }).catch(function(){ showToast('网络错误'); });
+}
+
+function openNote(id) {
+    fetch('/api/notes/' + id, {headers: authHeaders()}).then(function(r){ return r.json(); }).then(function(d){
+        if (!d.ok) { showToast('笔记不存在'); return; }
+        currentNoteId = id;
+        document.getElementById('editorTitle').value = d.note.title || '';
+        document.getElementById('editorContent').value = d.note.content || '';
+        document.getElementById('saveStatus').textContent = '就绪';
+        document.getElementById('saveStatus').className = 'save-status';
+        document.getElementById('editorOverlay').classList.add('show');
+    }).catch(function(){ showToast('加载失败'); });
+}
+
+function closeEditor() {
+    document.getElementById('editorOverlay').classList.remove('show');
+    currentNoteId = null;
+    if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
+}
+
+function saveNote() {
+    if (!currentNoteId) return;
+    var title = document.getElementById('editorTitle').value.trim() || '无标题';
+    var content = document.getElementById('editorContent').value;
+    var status = document.getElementById('saveStatus');
+    status.textContent = '保存中...';
+    status.className = 'save-status saving';
+    fetch('/api/notes/' + currentNoteId, {
+        method: 'PUT',
+        headers: authHeaders({'Content-Type': 'application/json'}),
+        body: JSON.stringify({title: title, content: content})
+    }).then(function(r){ return r.json(); }).then(function(d){
+        if (d.ok) {
+            status.textContent = '已保存';
+            status.className = 'save-status saved';
+            loadNotes();
+            showToast('保存成功');
+        } else {
+            status.textContent = '保存失败';
+            status.className = 'save-status error';
+            showToast('保存失败: ' + (d.error || '未知错误'));
+        }
+    }).catch(function(){
+        status.textContent = '网络错误';
+        status.className = 'save-status error';
+        showToast('网络错误，保存失败');
+    });
+}
+
+function deleteNote(id) {
+    if (!confirm('确定要删除这篇笔记吗？')) return;
+    fetch('/api/notes/' + id, {method: 'DELETE', headers: authHeaders()}).then(function(r){ return r.json(); }).then(function(d){
+        if (d.ok) {
+            showToast('已删除');
+            loadNotes();
+        }
+    }).catch(function(){ showToast('删除失败'); });
+}
+
+function deleteCurrentNote() {
+    if (!currentNoteId) return;
+    deleteNote(currentNoteId);
+    closeEditor();
+}
+
+function insertText(before, after) {
+    var ta = document.getElementById('editorContent');
+    var start = ta.selectionStart;
+    var end = ta.selectionEnd;
+    var sel = ta.value.substring(start, end);
+    var text = before + sel + after;
+    ta.setRangeText(text, start, end, 'end');
+    ta.focus();
+}
+
+/* 自动保存（3秒无操作后） */
+document.getElementById('editorContent').addEventListener('input', function(){
+    if (saveTimer) clearTimeout(saveTimer);
+    var status = document.getElementById('saveStatus');
+    status.textContent = '未保存';
+    status.className = 'save-status';
+    saveTimer = setTimeout(saveNote, 3000);
+});
+document.getElementById('editorTitle').addEventListener('input', function(){
+    if (saveTimer) clearTimeout(saveTimer);
+    var status = document.getElementById('saveStatus');
+    status.textContent = '未保存';
+    status.className = 'save-status';
+    saveTimer = setTimeout(saveNote, 3000);
+});
+
+/* 图片粘贴上传 */
+document.getElementById('editorContent').addEventListener('paste', function(e){
+    var cd = e.clipboardData || window.clipboardData;
+    if (!cd || !cd.items) return;
+    for (var i = 0; i < cd.items.length; i++) {
+        var item = cd.items[i];
+        if (item.type && item.type.indexOf('image') === 0) {
+            e.preventDefault();
+            var blob = item.getAsFile();
+            if (!blob) return;
+            var reader = new FileReader();
+            reader.onload = function(ev){
+                var b64 = ev.target.result.split(',')[1] || '';
+                var ext = (blob.type === 'image/gif') ? 'gif' : (blob.type === 'image/webp' ? 'webp' : (blob.type === 'image/jpeg' ? 'jpg' : 'png'));
+                showToast('图片上传中...');
+                fetch('/api/notes/upload', {
+                    method: 'POST',
+                    headers: authHeaders({'Content-Type': 'application/json'}),
+                    body: JSON.stringify({base64: b64, ext: ext})
+                }).then(function(r){ return r.json(); }).then(function(d){
+                    if (d.ok) {
+                        var ta = document.getElementById('editorContent');
+                        var pos = ta.selectionStart;
+                        var md = '\n![' + (d.url.split('/').pop() || 'image') + '](' + d.url + ')\n';
+                        ta.setRangeText(md, pos, pos, 'end');
+                        ta.focus();
+                        showToast('图片已插入');
+                        if (saveTimer) clearTimeout(saveTimer);
+                        saveTimer = setTimeout(saveNote, 1000);
+                    } else {
+                        showToast('图片上传失败');
+                    }
+                }).catch(function(){ showToast('网络错误，上传失败'); });
+            };
+            reader.readAsDataURL(blob);
+            break;
+        }
+    }
+});
+
+/* ESC关闭编辑器 */
+document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape') closeEditor();
+});
+
+/* 点击遮罩关闭 */
+document.getElementById('editorOverlay').addEventListener('click', function(e){
+    if (e.target === this) closeEditor();
+});
+
+if (sessionStorage.getItem('admin_token')) loadNotes();
+</script>
+</body>
+</html>
+

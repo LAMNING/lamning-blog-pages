@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAMNING - 可视化编辑器</title>
+    <link href="https://unpkg.com/grapesjs@0.21.10/dist/css/grapes.min.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif; }
+
+        /* 顶部工具栏 */
+        .top-bar {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+            height: 48px;
+            background: #1e293b; color: #fff;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        .top-bar-left { display: flex; align-items: center; gap: 16px; }
+        .top-bar-right { display: flex; align-items: center; gap: 12px; }
+        .top-bar .logo { font-size: 15px; font-weight: 700; color: #94a3b8; }
+        .page-switcher {
+            display: flex; gap: 4px; background: rgba(255,255,255,0.1);
+            border-radius: 8px; padding: 3px;
+            overflow-x: auto; max-width: 50vw;
+        }
+        .page-btn {
+            padding: 5px 14px; border: none; border-radius: 6px;
+            font-size: 12px; font-weight: 600; cursor: pointer;
+            background: transparent; color: #94a3b8; transition: all 0.2s;
+        }
+        .page-btn.active { background: #3b82f6; color: #fff; }
+        .page-btn:hover:not(.active) { background: rgba(255,255,255,0.1); color: #fff; }
+
+        .save-btn {
+            padding: 6px 18px; border: none; border-radius: 8px;
+            font-size: 13px; font-weight: 600; cursor: pointer;
+            background: #22c55e; color: #fff; transition: all 0.2s;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .save-btn:hover { background: #16a34a; }
+        .save-btn:active { transform: scale(0.96); }
+        .save-btn.saving { background: #94a3b8; pointer-events: none; }
+
+        .back-btn {
+            padding: 6px 12px; border: none; border-radius: 6px;
+            font-size: 12px; cursor: pointer;
+            background: rgba(255,255,255,0.1); color: #94a3b8;
+            transition: all 0.2s; text-decoration: none;
+        }
+        .back-btn:hover { background: rgba(255,255,255,0.2); color: #fff; }
+
+        /* Toast */
+        .toast {
+            position: fixed; top: 60px; left: 50%; transform: translateX(-50%);
+            padding: 10px 24px; border-radius: 10px; font-size: 13px; z-index: 9999;
+            opacity: 0; transition: opacity 0.3s; pointer-events: none;
+        }
+        .toast.success { background: #0f172a; color: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+        .toast.error { background: #dc2626; color: #fff; box-shadow: 0 4px 20px rgba(220,38,38,0.3); }
+        .toast.show { opacity: 1; }
+
+        /* GrapesJS 容器 */
+        #gjs {
+            position: fixed; top: 48px; left: 0; right: 0; bottom: 0;
+        }
+
+        /* GrapesJS 样式覆盖 */
+        .gjs-pn-panel { background: #1e293b !important; }
+        .gjs-pn-btn { color: #94a3b8 !important; }
+        .gjs-pn-btn:hover { color: #fff !important; }
+        .gjs-pn-btn.gjs-pn-active { color: #3b82f6 !important; }
+        .gjs-cv-canvas { background: #f1f5f9; }
+        .gjs-frame-wrapper { background: #fff; }
+        .gjs-toolbar { background: rgba(30,41,59,0.95) !important; border-radius: 8px !important; }
+        .gjs-toolbar-item { color: #fff !important; }
+        .gjs-layer-name { color: #94a3b8 !important; }
+        .gjs-layer-name-c { color: #e2e8f0 !important; }
+        .gjs-sm-sector-title { color: #94a3b8 !important; }
+        .gjs-clm-tags .gjs-sm-title { color: #94a3b8 !important; }
+        .gjs-category-title { color: #94a3b8 !important; }
+    </style>
+</head>
+<body>
+
+    <!-- 顶部工具栏 -->
+    <div class="top-bar">
+        <div class="top-bar-left">
+            <span class="logo">🎨 可视化编辑器</span>
+            <div class="page-switcher">
+                <button class="page-btn active" onclick="switchPage('main')">主页</button>
+                <button class="page-btn" onclick="switchPage('intro')">个人介绍</button>
+                <button class="page-btn" onclick="switchPage('projects')">历史项目</button>
+                <button class="page-btn" onclick="switchPage('health')">健康监控</button>
+            </div>
+        </div>
+        <div class="top-bar-right">
+            <a href="/admin/" class="back-btn">← 管理后台</a>
+            <button class="save-btn" id="saveBtn" onclick="savePage()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                保存并发布
+            </button>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast"></div>
+
+    <!-- GrapesJS 编辑器 -->
+    <div id="gjs"></div>
+
+    <script src="https://unpkg.com/grapesjs@0.21.10/dist/grapes.min.js"></script>
+    <script>
+        let editor = null;
+        let currentPage = 'main';
+        let TOKEN = sessionStorage.getItem('admin_token') || '';
+        let originalHtml = '';  // 保存原始 HTML，用于重建
+
+        // 初始化编辑器
+        function initEditor(html) {
+            if (editor) {
+                editor.destroy();
+            }
+
+            originalHtml = html;  // 存储原始 HTML
+
+            // 提取 body 内容和 style
+            let bodyContent = '';
+            let styleContent = '';
+            const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+            const styleMatch = html.match(/<style[^>]*>([\s\S]*?)<\/style>/gi);
+            if (bodyMatch) bodyContent = bodyMatch[1];
+            if (styleMatch) styleContent = styleMatch.join('\n');
+
+            // 移除外部 CDN 引用（编辑器内不需要）
+            bodyContent = bodyContent.replace(/<script[^>]*cc-im-sdk[^>]*><\/script>/gi, '');
+            bodyContent = bodyContent.replace(/<script[^>]*><\/script>\s*$/i, '');
+
+            // 编辑器内：移除密码验证遮罩，显示主内容
+            // 1. 移除 authOverlay 整个 div
+            const tmpDiv = document.createElement('div');
+            tmpDiv.innerHTML = bodyContent;
+            const authEl = tmpDiv.querySelector('#authOverlay');
+            if (authEl) authEl.remove();
+            bodyContent = tmpDiv.innerHTML;
+            // 2. 移除 script 标签（验证逻辑编辑器不需要）
+            tmpDiv.querySelectorAll('script').forEach(s => s.remove());
+            bodyContent = tmpDiv.innerHTML;
+            // 3. CSS 里 #mainContent{display:none} 改成 block
+            styleContent = styleContent.replace(/#mainContent\s*\{[^}]*display\s*:\s*none[^}]*\}/gi, '#mainContent{display:block!important;}');
+            // 4. 内联 style 的 display:none 也改掉
+            bodyContent = bodyContent.replace(/id="mainContent"\s*style="[^"]*display\s*:\s*none[^"]*"/gi, 'id="mainContent" style="display:block;"');
+            bodyContent = bodyContent.replace(/style="[^"]*display\s*:\s*none[^"]*"\s*id="mainContent"/gi, 'id="mainContent" style="display:block;"');
+
+            editor = grapesjs.init({
+                container: '#gjs',
+                height: '100%',
+                width: '100%',
+                storageManager: false,
+                panels: { defaults: [] },
+                deviceManager: {
+                    devices: [
+                        { name: '桌面', width: '' },
+                        { name: '平板', width: '768px' },
+                        { name: '手机', width: '375px' },
+                    ],
+                },
+                styleManager: {
+                    sectors: [
+                        {
+                            name: '布局',
+                            open: true,
+                            buildProps: ['display', 'flex-direction', 'justify-content', 'align-items', 'gap', 'flex-wrap', 'padding', 'margin'],
+                        },
+                        {
+                            name: '尺寸',
+                            open: false,
+                            buildProps: ['width', 'height', 'max-width', 'min-height'],
+                        },
+                        {
+                            name: '排版',
+                            open: false,
+                            buildProps: ['font-family', 'font-size', 'font-weight', 'color', 'text-align', 'line-height', 'letter-spacing'],
+                        },
+                        {
+                            name: '背景',
+                            open: false,
+                            buildProps: ['background-color', 'background-image', 'background-size', 'background-position'],
+                        },
+                        {
+                            name: '边框',
+                            open: false,
+                            buildProps: ['border', 'border-radius', 'box-shadow'],
+                        },
+                        {
+                            name: '效果',
+                            open: false,
+                            buildProps: ['opacity', 'backdrop-filter', 'transform', 'transition', 'cursor'],
+                        },
+                        {
+                            name: '位置',
+                            open: false,
+                            buildProps: ['position', 'top', 'left', 'right', 'bottom', 'z-index', 'overflow'],
+                        },
+                    ],
+                },
+                blockManager: {
+                    blocks: [
+                        {
+                            id: 'section',
+                            label: '容器',
+                            content: '<div style="padding:24px;min-height:80px;"></div>',
+                            category: '布局',
+                        },
+                        {
+                            id: 'text',
+                            label: '文字',
+                            content: '<div style="font-size:16px;color:#374151;">双击编辑文字</div>',
+                            category: '基础',
+                        },
+                        {
+                            id: 'heading',
+                            label: '标题',
+                            content: '<h2 style="font-size:24px;font-weight:700;color:#0f172a;margin-bottom:12px;">标题文字</h2>',
+                            category: '基础',
+                        },
+                        {
+                            id: 'button',
+                            label: '按钮',
+                            content: '<a style="display:inline-block;padding:10px 24px;background:#3b82f6;color:#fff;border-radius:10px;font-size:14px;font-weight:600;text-decoration:none;cursor:pointer;">按钮</a>',
+                            category: '基础',
+                        },
+                        {
+                            id: 'image',
+                            label: '图片',
+                            content: '<img src="https://via.placeholder.com/300x200" style="max-width:100%;border-radius:12px;" />',
+                            category: '基础',
+                        },
+                        {
+                            id: 'divider',
+                            label: '分割线',
+                            content: '<hr style="border:none;height:1px;background:rgba(0,0,0,0.08);margin:16px 0;" />',
+                            category: '基础',
+                        },
+                        {
+                            id: 'glass-card',
+                            label: '玻璃卡片',
+                            content: '<div style="background:rgba(255,255,255,0.55);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.7);border-radius:18px;box-shadow:0 4px 30px rgba(0,0,0,0.06);padding:28px;">玻璃卡片内容</div>',
+                            category: '组件',
+                        },
+                        {
+                            id: 'tag',
+                            label: '标签',
+                            content: '<span style="display:inline-block;padding:4px 12px;border-radius:6px;font-size:12px;font-weight:500;background:rgba(245,245,245,0.6);color:#525252;margin:2px 4px 2px 0;border:1px solid rgba(255,255,255,0.4);">标签</span>',
+                            category: '组件',
+                        },
+                    ],
+                },
+                canvas: {
+                    styles: [],
+                },
+            });
+
+            // 加载 HTML 内容
+            editor.setComponents(bodyContent);
+
+            // 加载样式
+            if (styleContent) {
+                editor.setStyle(styleContent);
+            }
+
+            // 添加顶部面板按钮
+            editor.Panels.addPanel({
+                id: 'panel-top',
+                el: '.gjs-pn-top',
+            });
+            editor.Panels.addButton('options', {
+                id: 'undo',
+                className: 'fa fa-undo',
+                command: 'undo',
+                attributes: { title: '撤销' },
+            });
+            editor.Panels.addButton('options', {
+                id: 'redo',
+                className: 'fa fa-repeat',
+                command: 'redo',
+                attributes: { title: '重做' },
+            });
+            editor.Panels.addButton('options', {
+                id: 'clear',
+                className: 'fa fa-trash',
+                command: 'clear',
+                attributes: { title: '清空画布' },
+            });
+
+            // 添加命令
+            editor.Commands.add('clear', {
+                run: function(editor) {
+                    if (confirm('确定要清空画布吗？')) {
+                        editor.DomComponents.clear();
+                    }
+                },
+            });
+
+            // 添加视图面板
+            editor.Panels.addPanel({ id: 'views' });
+            editor.Panels.addButton('views', {
+                id: 'open-blocks',
+                className: 'fa fa-plus',
+                command: 'open-blocks',
+                active: true,
+                attributes: { title: '组件库' },
+            });
+            editor.Panels.addButton('views', {
+                id: 'open-sm',
+                className: 'fa fa-paint-brush',
+                command: 'open-sm',
+                attributes: { title: '样式管理器' },
+            });
+            editor.Panels.addButton('views', {
+                id: 'open-layers',
+                className: 'fa fa-bars',
+                command: 'open-layers',
+                attributes: { title: '图层' },
+            });
+            editor.Panels.addButton('views', {
+                id: 'open-code',
+                className: 'fa fa-code',
+                command: 'open-code',
+                attributes: { title: '查看代码' },
+            });
+        }
+
+        // 加载页面（同时注入 API 数据，让动态内容在编辑器里可见）
+        function loadPage(page) {
+            Promise.all([
+                fetch('/api/html/' + page, { headers: { 'X-Token': TOKEN } }).then(r => r.json()),
+                fetch('/api/content').then(r => r.json())
+            ])
+            .then(([htmlData, apiData]) => {
+                if (!htmlData.ok) { showToast('加载失败', 'error'); return; }
+                let html = htmlData.html;
+                // 把 API 数据注入到 HTML 中，让动态内容变成静态可见
+                html = injectApiData(html, apiData);
+                initEditor(html);
+            })
+            .catch(() => showToast('网络错误', 'error'));
+        }
+
+        // 将 API 数据注入 HTML（用正则替换，让动态内容变成静态可见）
+        function injectApiData(html, d) {
+            // 名片
+            html = html.replace(/(id="pName">)[^<]*/, '$1' + esc(d.profile_name||'LAMNING'));
+            html = html.replace(/(id="pBio">)[^<]*/, '$1' + esc(d.profile_bio||''));
+            // 标签
+            const tags = (d.profile_tags||[]).map(t=>'<span class="tag">'+esc(t)+'</span>').join('');
+            html = html.replace(/(id="pTags">)[^<]*/, '$1' + tags);
+            // 公告
+            if (d.announcement) html = html.replace(/(id="announcement">)[^<]*/, '$1📢 ' + esc(d.announcement).replace(/\n/g,'<br>'));
+            // 扩列条
+            if (d.bio_content) {
+                const lines = d.bio_content.split(/\n|\\n/);
+                const bioHtml = lines.map(line => {
+                    if (line==='---') return '<hr class="bio-divider">';
+                    return '<div class="bio-line">'+esc(line)+'</div>';
+                }).join('');
+                html = html.replace(/(id="bioContent">)[^<]*/, '$1' + bioHtml);
+            }
+            // 图库
+            if (d.gallery && d.gallery.length) {
+                const galHtml = d.gallery.map(url =>
+                    '<div class="gallery-item"><img src="'+url+'" style="width:100%;height:100%;object-fit:cover;border-radius:12px;"></div>'
+                ).join('');
+                html = html.replace(/(id="galleryGrid">)[\s\S]*?(?=<\/div>\s*<\/div>)/, '$1' + galHtml);
+            }
+            // 联系方式
+            html = html.replace(/(id="cQQ">)[^<]*/, '$1QQ: ' + esc(d.contact_qq||'[qq removed]'));
+            html = html.replace(/(id="cEmail">)[^<]*/, '$1' + esc(d.contact_email||''));
+            return html;
+        }
+        function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+        // 切换页面
+        function switchPage(page) {
+            if (page === currentPage) return;
+            currentPage = page;
+            document.querySelectorAll('.page-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            loadPage(page);
+        }
+
+        // 保存页面
+        function savePage() {
+            const btn = document.getElementById('saveBtn');
+            btn.classList.add('saving');
+            btn.innerHTML = '保存中...';
+
+            // 获取编辑器生成的 HTML 和 CSS
+            const bodyHtml = editor.getHtml();
+            const css = editor.getCss();
+
+            // 构建完整 HTML：保留原始页面结构，只替换 body 内容
+            const fullHtml = buildFullHtml(bodyHtml, css);
+
+            fetch('/api/html/' + currentPage, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Token': TOKEN,
+                },
+                body: JSON.stringify({ html: fullHtml }),
+            })
+            .then(r => r.json())
+            .then(d => {
+                if (d.ok) {
+                    showToast('✅ 保存成功！页面已更新', 'success');
+                } else {
+                    showToast('❌ 保存失败: ' + (d.error || ''), 'error');
+                }
+            })
+            .catch(() => showToast('❌ 网络错误', 'error'))
+            .finally(() => {
+                btn.classList.remove('saving');
+                btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> 保存并发布';
+            });
+        }
+
+        // 构建完整 HTML：保留原始 head，只替换 body 内容
+        function buildFullHtml(bodyHtml, css) {
+            // GrapesJS 的 getHtml() 会丢弃页面里所有 script，保存前从原始 HTML 提取出来放回 body 尾部
+            const scripts = (originalHtml.match(/<script[\s\S]*?<\/script>/gi) || []).join('\n');
+            // 剥离 bodyHtml 可能自带的 body 标签，避免出现双 <body>
+            let inner = String(bodyHtml).replace(/^\s*<body[^>]*>/i, '').replace(/<\/body>\s*$/i, '');
+            inner = inner + '\n' + scripts;
+            let result = originalHtml;
+            // 先移除旧的 gjs-css 再插入，避免多次保存后样式不断累积膨胀
+            result = result.replace(/<style id="gjs-css">[\s\S]*?<\/style>\s*/g, '');
+            result = result.replace('</head>', '<style id="gjs-css">' + css + '</style>\n</head>');
+            result = result.replace(/<body[^>]*>[\s\S]*<\/body>/i, '<body>\n' + inner + '\n</body>');
+            return result;
+        }
+
+        // Toast
+        function showToast(msg, type) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.className = 'toast ' + (type || 'success') + ' show';
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // 验证登录
+        if (!TOKEN) {
+            const pwd = prompt('请输入管理密码：');
+            if (pwd) {
+                fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: pwd }),
+                })
+                .then(r => r.json())
+                .then(d => {
+                    if (d.ok) {
+                        TOKEN = d.token;
+                        sessionStorage.setItem('admin_token', TOKEN);
+                        loadPage('main');
+                    } else {
+                        alert('密码错误');
+                        window.location.href = '/admin/';
+                    }
+                })
+                .catch(() => {
+                    alert('连接失败');
+                    window.location.href = '/admin/';
+                });
+            } else {
+                window.location.href = '/admin/';
+            }
+        } else {
+            fetch('/api/admin-session', {headers: {'X-Token': TOKEN}})
+                .then(r => {
+                    if (!r.ok) throw new Error('expired');
+                    return r.json();
+                })
+                .then(d => {
+                    if (d.ok) loadPage('main');
+                })
+                .catch(() => {
+                    sessionStorage.removeItem('admin_token');
+                    window.location.href = '/admin/';
+                });
+        }
+    </script>
+
+</body>
+</html>
+

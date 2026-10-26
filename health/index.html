@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>个人睡眠监控大屏（MIMO大模型测试）</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a1a;color:#d7e3f5;font-family:'Segoe UI','PingFang SC','Microsoft YaHei',Inter,sans-serif;min-height:100vh;overflow-x:hidden;
+  background-image:radial-gradient(1200px 600px at 20% -10%,rgba(0,212,255,.08),transparent 60%),radial-gradient(1000px 700px at 110% 110%,rgba(124,58,237,.10),transparent 60%),linear-gradient(180deg,#0a0a1a,#0d0d22)}
+.glass{background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.09);border-radius:18px;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  box-shadow:0 0 40px rgba(0,212,255,.06) inset,0 10px 30px rgba(0,0,0,.35);padding:20px 22px;position:relative;overflow:hidden;transition:box-shadow .3s}
+.glass::before{content:"";position:absolute;inset:0;border-radius:18px;pointer-events:none;background:linear-gradient(135deg,rgba(255,255,255,.09),transparent 40%)}
+.glass.pulse{animation:pulsebox .55s ease}
+@keyframes pulsebox{0%{box-shadow:0 0 0 0 rgba(0,212,255,.55),0 0 40px rgba(0,212,255,.06) inset}70%{box-shadow:0 0 0 4px rgba(0,212,255,.35),0 0 60px rgba(0,212,255,.18) inset}100%{box-shadow:0 0 0 0 rgba(0,212,255,0),0 0 40px rgba(0,212,255,.06) inset}}
+.wrap{max-width:1840px;margin:0 auto;padding:0 24px}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:26px 0 18px;gap:16px;flex-wrap:wrap}
+.htitle{font-size:clamp(24px,2.3vw,38px);font-weight:700;letter-spacing:2px;color:#eaf6ff;background:linear-gradient(90deg,#00d4ff,#7c3aed,#00d4ff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hsub{color:#7c8794;font-size:13px;margin-top:8px;letter-spacing:1px}
+.topright{text-align:right;font-size:13px;color:#9aa7b8;line-height:1.8}
+.refreshinfo{font-family:Consolas,monospace;font-size:14px;color:#eaf6ff;display:inline-flex;align-items:center;gap:8px}
+.refreshinfo i{width:8px;height:8px;border-radius:50%;background:#10b981;box-shadow:0 0 8px #10b981;animation:blink 1.6s infinite}
+.live{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:4px 12px;border-radius:20px;border:1px solid;margin-top:6px}
+.live.on{color:#10b981;border-color:rgba(16,185,129,.5);background:rgba(16,185,129,.12)}
+.live.off{color:#f59e0b;border-color:rgba(245,158,11,.5);background:rgba(245,158,11,.12)}
+.live i{width:7px;height:7px;border-radius:50%}
+.live.on i{background:#10b981;box-shadow:0 0 8px #10b981}
+.live.off i{background:#f59e0b}
+.grid{display:grid;gap:20px;grid-template-columns:1.05fr .95fr}
+.left,.right{display:flex;flex-direction:column;gap:20px;min-width:0}
+@media(max-width:1180px){.grid{grid-template-columns:1fr}}
+.chead{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;position:relative;z-index:2}
+.chead h3{font-size:15px;font-weight:600;color:#cfe6f8;letter-spacing:1px;display:flex;align-items:center;gap:8px}
+.chead h3 .dot{width:6px;height:6px;border-radius:50%;background:#00d4ff;box-shadow:0 0 8px #00d4ff;animation:pulse 1.4s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.tag{font-size:11px;color:#7c8794;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);padding:3px 10px;border-radius:20px;letter-spacing:.5px}
+.ac{color:#00d4ff}.pu{color:#7c3aed}.og{color:#f59e0b}.gr{color:#10b981}.rd{color:#ef4444}.gy{color:#7c8794}
+
+
+/* === 以下为恢复的组件样式 === */
+
+/* 动画 */
+.fadein{opacity:0;transform:translateY(10px);animation:fadein .6s ease forwards}
+@keyframes fadein{to{opacity:1;transform:translateY(0)}}
+.d1{animation-delay:.1s}.d2{animation-delay:.2s}.d3{animation-delay:.3s}.d4{animation-delay:.4s}
+.blinkdot{position:absolute;top:14px;right:14px;width:8px;height:8px;border-radius:50%;background:#10b981;box-shadow:0 0 10px #10b981;animation:blink 1.6s infinite;z-index:3}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* 图表 */
+.chart{width:100%;height:180px;position:relative;z-index:1}
+.chart.small{height:100px}
+.chart.dual{height:100px}
+
+/* 睡眠分析 */
+.sleepwrap{position:relative;z-index:2}
+.sleepstat{display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap}
+.sleepmain{display:flex;flex-direction:column;align-items:center}
+.sleepbig{display:flex;align-items:baseline;gap:10px;margin:16px 0}
+.sleepbig .lbl{font-size:12px;color:#7c8794}
+.sleepfoot{display:flex;justify-content:space-between;font-size:12px;color:#7c8794;margin-top:10px}
+.dualcharts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.num{font-size:clamp(28px,4vw,48px);font-weight:700;letter-spacing:-1px;color:#eaf6ff;line-height:1}
+.kpi{font-size:12px;color:#7c8794;margin-top:4px;text-align:center}
+.ratio{margin-top:12px;width:100%;max-width:280px}
+.r{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12px}
+.bar{flex:1;height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:4px;transition:width .8s ease}
+.scorebox{display:flex;align-items:center;justify-content:center}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:500}
+.badge.deep{background:rgba(30,58,95,.3);color:#93c5fd;border:1px solid rgba(30,58,95,.5)}
+.badge.deep i{width:7px;height:7px;border-radius:50%;background:#1e3a5f;animation:blink 1.4s infinite}
+.badge.light{background:rgba(74,144,217,.2);color:#bfdbfe;border:1px solid rgba(74,144,217,.4)}
+.badge.light i{width:7px;height:7px;border-radius:50%;background:#4a90d9;animation:blink 1.4s infinite}
+.badge.awake{background:rgba(245,158,11,.15);color:#fbbf24;border:1px solid rgba(245,158,11,.3)}
+
+/* 心率 */
+.hrcard{position:relative;z-index:2}
+.hrtop{display:flex;align-items:baseline;gap:12px}
+.hrval{display:flex;align-items:baseline;gap:6px}
+.hrval .num{font-size:clamp(36px,5vw,56px)}
+.unit{font-size:14px;color:#7c8794;font-weight:400}
+.hrstat{display:flex;gap:16px;margin-top:12px;flex-wrap:wrap}
+.hrstat .s{display:flex;flex-direction:column;font-size:11px;color:#7c8794}
+.hrstat .s b{font-size:18px;font-weight:700;margin-bottom:2px}
+.hrstat .hi b{color:#ef4444}
+.hrstat .lo b{color:#3b82f6}
+.hrstat .avg b{color:#10b981}
+
+/* 手机状态 */
+.phoneitem{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.phoneitem:last-child{border-bottom:none}
+.picon{width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.ptxt{flex:1;display:flex;flex-direction:column;gap:2px}
+.ptxt .n{font-size:11px;color:#7c8794}
+.ptxt .v{font-size:14px;color:#eaf6ff;font-weight:500}
+.ptxt .sub{font-size:11px;color:#7c8794;margin-top:2px}
+
+/* 电池图标 */
+.battery{display:inline-flex;align-items:center;gap:2px}
+.batt-body{display:inline-flex;width:28px;height:14px;border:1.5px solid #7c8794;border-radius:3px;padding:2px;position:relative}
+.batt-body i{display:block;height:100%;border-radius:1px;background:#10b981;transition:width .3s}
+.batt-nub{width:3px;height:7px;background:#7c8794;border-radius:0 2px 2px 0}
+.bolt{font-size:14px;margin-left:4px}
+.pbar{height:4px;background:rgba(255,255,255,.06);border-radius:2px;margin-top:6px;overflow:hidden}
+.pbar i{display:block;height:100%;background:linear-gradient(90deg,#00d4ff,#7c3aed);border-radius:2px;transition:width .6s ease}
+
+/* 媒体播放 */
+.media{display:flex;flex-direction:column;gap:14px;position:relative;z-index:2}
+.part{display:flex;align-items:center;gap:12px}
+.micon{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#7c3aed,#a855f7);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.mtxt{flex:1;display:flex;flex-direction:column;min-width:0}
+.mtxt .t{font-size:13px;font-weight:600;color:#eaf6ff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mtxt .s{font-size:11px;color:#7c8794;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.eq{display:flex;align-items:flex-end;gap:3px;height:20px;flex-shrink:0}
+.eq i{display:block;width:3px;background:#7c3aed;border-radius:2px;animation:eq .8s ease-in-out infinite alternate}
+.eq i:nth-child(1){height:8px;animation-delay:0s}
+.eq i:nth-child(2){height:14px;animation-delay:.15s}
+.eq i:nth-child(3){height:10px;animation-delay:.3s}
+.eq i:nth-child(4){height:16px;animation-delay:.45s}
+@keyframes eq{0%{height:4px}100%{height:18px}}
+.connlight{display:inline-flex;align-items:center;gap:6px;font-size:11px;padding:2px 10px;border-radius:12px}
+.connlight i{width:6px;height:6px;border-radius:50%}
+.connlight.ok{color:#10b981;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3)}
+.connlight.ok i{background:#10b981;box-shadow:0 0 6px #10b981}
+.connlight.err{color:#ef4444;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3)}
+.connlight.err i{background:#ef4444}
+.connlight.null{color:#7c8794;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06)}
+.connlight.null i{background:#7c8794}
+
+/* 手表 */
+.watchinfo{position:relative;z-index:2}
+.watchinfo .r{display:flex;align-items:center;gap:8px;font-size:13px;color:#cfe6f8;padding:4px 0}
+.watchinfo .k{font-size:11px;color:#7c8794;min-width:60px}
+.mac{font-family:Consolas,monospace;font-size:11px;color:#5b6b7e;margin-left:6px}
+.watchrow{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.watchrow .item{text-align:center;padding:10px 0}
+.batt-dash{display:inline-flex;align-items:center;gap:4px}
+.batt-dash i{display:inline-block;width:24px;height:10px;border:1.5px solid #7c8794;border-radius:2px;position:relative}
+</style>
+<link rel="stylesheet" href="/assets/common.css">
+<script>
+window.LAMNING_CONFIG = { theme: 'dark', loaderDelay: 200, staggerBase: 100 };
+</script>
+<style>.ico{width:1.15em;height:1.15em;vertical-align:-.2em;display:inline-block;position:relative;top:-.02em}</style>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="g-heart" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fb7185"/><stop offset="1" stop-color="#ef4444"/></linearGradient><linearGradient id="g-heart-f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fb7185" stop-opacity=".55"/><stop offset="1" stop-color="#ef4444" stop-opacity=".08"/></linearGradient><linearGradient id="g-bolt" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbbf24"/><stop offset="1" stop-color="#f97316"/></linearGradient><linearGradient id="g-moon" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#818cf8"/><stop offset="1" stop-color="#6366f1"/></linearGradient><linearGradient id="g-sunrise" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fb923c"/><stop offset="1" stop-color="#f97316"/></linearGradient><linearGradient id="g-coffee" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d97706"/><stop offset="1" stop-color="#b45309"/></linearGradient><linearGradient id="g-cap" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#60a5fa"/><stop offset="1" stop-color="#2563eb"/></linearGradient><linearGradient id="g-music" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a78bfa"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient><linearGradient id="g-head" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c4b5fd"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient><linearGradient id="g-cloud" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7dd3fc"/><stop offset="1" stop-color="#0ea5e9"/></linearGradient><linearGradient id="g-rocket" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fb7185"/><stop offset="1" stop-color="#f43f5e"/></linearGradient><linearGradient id="g-flag" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6ee7b7"/><stop offset="1" stop-color="#10b981"/></linearGradient><linearGradient id="g-pin" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fda4af"/><stop offset="1" stop-color="#f43f5e"/></linearGradient><linearGradient id="g-clip" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#93c5fd"/><stop offset="1" stop-color="#3b82f6"/></linearGradient><linearGradient id="g-sun2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fcd34d"/><stop offset="1" stop-color="#f59e0b"/></linearGradient><linearGradient id="g-octo" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c4b5fd"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient><linearGradient id="g-bubble" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#93c5fd"/><stop offset="1" stop-color="#3b82f6"/></linearGradient><linearGradient id="g-mail" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#93c5fd"/><stop offset="1" stop-color="#2563eb"/></linearGradient><linearGradient id="g-user" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a5b4fc"/><stop offset="1" stop-color="#6366f1"/></linearGradient><linearGradient id="g-books" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a5b4fc"/><stop offset="1" stop-color="#6366f1"/></linearGradient><linearGradient id="g-folder" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fcd34d"/><stop offset="1" stop-color="#f59e0b"/></linearGradient><linearGradient id="g-robot" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#818cf8"/><stop offset="1" stop-color="#6366f1"/></linearGradient><linearGradient id="g-book" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#93c5fd"/><stop offset="1" stop-color="#3b82f6"/></linearGradient><linearGradient id="g-note" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#93c5fd"/><stop offset="1" stop-color="#2563eb"/></linearGradient><linearGradient id="g-phone" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#67e8f9"/><stop offset="1" stop-color="#0891b2"/></linearGradient><linearGradient id="g-signal" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6ee7b7"/><stop offset="1" stop-color="#059669"/></linearGradient><linearGradient id="g-disk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#93c5fd"/><stop offset="1" stop-color="#3b82f6"/></linearGradient><linearGradient id="g-lock" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a5b4fc"/><stop offset="1" stop-color="#6366f1"/></linearGradient></defs></svg>
+</head>
+<body>
+<div class="page-loader" id="pageLoader"><div class="loader-ring"></div><div class="loader-label">加载中...</div></div><div class="wrap fadein slide-up">
+  <header class="topbar">
+    <div><h1 class="htitle">个人睡眠监控大屏（MIMO大模型测试）</h1>
+      <div class="hsub" id="subTitle">2026年10月12日 星期日 · 数据更新于 --:--</div></div>
+    <div class="topright">
+      <div class="refreshinfo"><i></i><span>上次刷新 <span id="lastRefresh">--:--:--</span> · <span id="countdown" style="color:#00d4ff">下次刷新 --:--</span></span></div>
+      <div id="liveTag" class="live off"><i></i><span>连接中…</span></div>
+    </div>
+  </header>
+
+  <div class="grid">
+    <div class="left">
+      <!-- Sleep card -->
+      <div class="glass fadein d1" id="cSleep">
+        <div class="chead"><h3><span class="dot" style="background:#7dd3fc;box-shadow:0 0 8px #7dd3fc"></span>睡眠分析</h3><span class="tag" id="sleepTag">--</span></div>
+        <div class="sleepwrap">
+          <!-- non-sleeping -->
+          <div id="sleepNon">
+            <div class="sleepstat">
+              <div class="sleepmain"><span class="num" id="sleepTotal">--</span><div class="kpi">昨晚总睡眠</div></div>
+              <div class="kpi" style="margin-top:8px"><span id="sleepBed">--</span><br><span class="gy" style="font-size:11px">入睡–醒来</span></div>
+              <div class="ratio">
+                <div class="r"><span class="gy">深睡</span><span class="bar"><i id="deepBar" style="width:0%;background:#1e3a5f"></i></span><b style="color:#93c5fd" id="deepTxt">--</b></div>
+                <div class="r"><span class="gy">浅睡</span><span class="bar"><i id="lightBar" style="width:0%;background:#4a90d9"></i></span><b style="color:#bfdbfe" id="lightTxt">--</b></div>
+              </div>
+              <div class="scorebox" id="scoreRing" style="width:110px;height:110px"></div>
+            </div>
+            <div class="chart small" id="sleepChart"></div>
+            <div style="font-size:11px;color:#5b6b7e;margin-top:4px;position:relative;z-index:2">
+              <span style="color:#1e3a5f">■ 深睡</span>&nbsp;&nbsp;<span style="color:#4a90d9">■ 浅睡</span></div>
+          </div>
+          <!-- sleeping -->
+          <div id="sleepOn" style="display:none">
+            <div class="chead" style="margin-bottom:10px">
+              <span id="sleepStateBadge" class="badge deep"><i></i>深睡</span>
+            </div>
+            <div class="sleepbig"><span class="num" id="sleepElapsed">--:--:--</span><span class="lbl">已睡</span></div>
+            <div class="dualcharts">
+              <div><div style="font-size:12px;color:#7c8794;margin-bottom:4px">心率 <span class="rd">曲线</span></div><div class="chart dual" id="sleepHrChart"></div></div>
+              <div><div style="font-size:12px;color:#7c8794;margin-bottom:4px">压力 <span class="pu">曲线</span></div><div class="chart dual" id="sleepStressChart"></div></div>
+            </div>
+            <div class="sleepfoot"><span>当前心率 <b class="rd" id="curHr">--</b> bpm</span><span>压力 <b class="pu" id="curStress">--</b></span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HR card -->
+      <div class="glass fadein d2" id="cHR"><div class="blinkdot"></div>
+        <div class="chead"><h3><span class="dot"></span>实时心率</h3><span class="tag" id="hrTag">--</span></div>
+        <div class="hrcard">
+          <div class="hrtop">
+            <div class="hrval"><span class="num" id="hrNow">--</span><span class="unit">bpm</span></div>
+          </div>
+          <div class="hrstat">
+            <div class="s hi"><b id="hrMax">--</b><span>今日最高</span></div>
+            <div class="s lo"><b id="hrMin">--</b><span>今日最低</span></div>
+            <div class="s avg"><b id="hrAvg">--</b><span>今日平均</span></div>
+          </div>
+          <div class="chart" id="hrChart"></div>
+          <div style="font-size:11px;color:#5b6b7e;margin-top:4px;position:relative;z-index:2">
+            <span class="rd">■ &lt;60 低</span>&nbsp;<span class="gr">■ 60–100 正常</span>&nbsp;<span class="og">■ 100–140 运动</span>&nbsp;<span class="rd">■ &gt;140 高</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="right">
+      <!-- Phone -->
+      <div class="glass fadein d2" id="cPhone">
+        <div class="chead"><h3><span class="dot"></span>手机状态</h3><span class="tag" id="phoneTag">--</span></div>
+        <div class="phoneitem"><div class="picon"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="url(#g-phone)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg></div>
+          <div class="ptxt"><span class="n">设备</span><span class="v" id="phoneModel">--</span></div></div>
+        <div class="phoneitem"><div class="picon"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="url(#g-bolt)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L5 13.5h6L10.5 22 19 10.5h-6z"/></svg></div>
+          <div class="ptxt"><span class="n">电量</span>
+            <div class="v"><span class="battery" id="battIcon"><span class="batt-body"><i></i></span><span class="batt-nub"></span></span>
+              <span id="battPct">--</span><span class="bolt" id="battCharge"></span></div>
+            <div class="sub" id="battEta"></div></div></div>
+        <div class="phoneitem"><div class="picon"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="url(#g-signal)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18v-3M9 18v-6M14 18v-9M19 18V6"/></svg></div>
+          <div class="ptxt"><span class="n">网络</span>
+            <div class="v" id="wifiV">--</div></div></div>
+        <div class="phoneitem"><div class="picon"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="url(#g-disk)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2.5"/><rect x="8" y="8" width="8" height="5" rx="1"/><path d="M8 16h.01M12 16h.01"/></svg></div>
+          <div class="ptxt"><span class="n">存储</span>
+            <div class="v" id="storeV">--</div>
+            <div class="pbar"><i id="storeBar" style="width:0%"></i></div></div></div>
+      </div>
+
+      <!-- Music + Buds merged -->
+      <div class="glass fadein d3" id="cMedia">
+        <div class="chead"><h3><span class="dot" style="background:#7c3aed;box-shadow:0 0 8px #7c3aed"></span>正在播放 + 耳机</h3></div>
+        <div class="media">
+          <div class="part">
+            <div class="micon"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="url(#g-music)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg></div>
+            <div class="mtxt"><span class="t" id="musicTitle">--</span><span class="s" id="musicArtist">--</span></div>
+            <div class="eq" id="eq"><i></i><i></i><i></i><i></i></div>
+          </div>
+          <div class="part">
+            <div class="micon" style="background:linear-gradient(135deg,#00d4ff,#7c3aed)"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="url(#g-head)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="13" width="4" height="7" rx="2"/><rect x="17" y="13" width="4" height="7" rx="2"/></svg></div>
+            <div class="mtxt"><span class="t" id="budsName">--</span><span class="s" id="budsApp">--</span></div>
+            <div id="budsConn" class="connlight null"><i></i>--</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Watch -->
+      <div class="glass fadein d4" id="cWatch">
+        <div class="chead"><h3><span class="dot"></span>手表状态</h3><span class="tag" id="watchTag">--</span></div>
+        <div class="watchinfo">
+          <div class="r"><span class="k">设备</span><span class="v" style="font-weight:600" id="watchName">--</span> <span class="mac" id="watchMac">--</span></div>
+          <div class="r"><span class="k">连接状态</span><span class="connlight null" id="watchConn"><i></i>--</span></div>
+        </div>
+        <div class="watchrow" style="margin-top:10px">
+          <div class="item"><span class="n" style="font-size:11px;color:#7c8794">电量</span><div style="margin-top:6px" id="watchBatt"><span class="batt-dash"><i></i></span> <span class="gy">获取中…</span></div></div>
+          <div class="item" id="oxItem"><span class="n" style="font-size:11px;color:#7c8794">血氧</span><div style="margin-top:6px" id="oxGauge"></div></div>
+          <div class="item"><span class="n" style="font-size:11px;color:#7c8794">步数</span><div style="margin-top:6px" id="stepRing" style="width:96px;height:96px"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://registry.npmmirror.com/echarts/5.6.0/files/dist/echarts.min.js"></script>
+<script>
+var DEFAULT={
+  "timestamp":"2026-10-12T15:05:24","displayTime":"15:05","displayDate":"2026年10月12日 星期日","isSleeping":false,
+  "watch":{"name":"REDMI Watch 5","mac":"AA:BB:CC:DD:EE:FF","connected":true,"battery":null,
+    "heartRate":{"current":72,"avg":72,"max":104,"min":50,"history":[52,55,58,54,50,53,56,60,65,68,72,75,78,80,82,85,90,95,104,98,92,85,78,72]},
+    "bloodOxygen":95,"steps":8169,"stepsGoal":6000,"calories":544,
+    "sleep":{"totalMinutes":309,"deepMinutes":90,"lightMinutes":219,"score":78,"bedtime":"01:02","wakeTime":"06:45",
+      "segments":[{"start":"01:02","end":"01:31","type":"deep"},{"start":"01:31","end":"01:44","type":"light"},{"start":"01:44","end":"02:56","type":"deep"},{"start":"02:56","end":"03:12","type":"light"},{"start":"03:12","end":"03:32","type":"deep"},{"start":"03:32","end":"03:46","type":"light"},{"start":"03:46","end":"04:15","type":"deep"},{"start":"04:15","end":"04:26","type":"light"},{"start":"04:26","end":"04:55","type":"deep"},{"start":"04:55","end":"05:10","type":"light"},{"start":"05:10","end":"05:46","type":"deep"},{"start":"05:46","end":"06:05","type":"light"},{"start":"06:05","end":"06:45","type":"deep"}],
+      "sleepHeartRate":[50,48,47,49,52,55,58,62,65,68,72,75,78,80,82,81,79,76,72,70,68,66,64,62],
+      "sleepStress":[22,20,19,21,23,26,30,34,38,41,45,48,50,48,45,42,38,35,32,28,26,24,22,20]}},
+  "phone":{"model":"Xiaomi 17","battery":52,"charging":true,"chargeEta":"45分钟",
+    "wifi":{"ssid":"Example-5G","band":"5GHz","signal":"4/4","speed":"1200Mbps"},
+    "storage":{"usedGB":128,"totalGB":256,"percent":50.0}},
+  "earphone":{"name":"REDMI Buds 8 Pro","connected":null},
+  "music":{"app":"示例音乐","title":"Demo Track","artist":"Demo Artist","playing":true}
+};
+var lastData=null,isSleeping=false,sleepStartTime=null;
+
+
+</script>
+<script src="/assets/common.js"></script>
+</body>
+</html>
+

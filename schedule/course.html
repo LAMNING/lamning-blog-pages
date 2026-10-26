@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>课程详情 - LAMNING</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;color:#1a1a2e;min-height:100vh;overflow-x:hidden;background:linear-gradient(135deg,#dbeafe 0%,#e0e7ff 20%,#cffafe 40%,#ede9fe 60%,#dbeafe 80%,#e0f2fe 100%);background-size:400% 400%;animation:gf 12s ease infinite}
+@keyframes gf{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+.ctn{width:100%;max-width:780px;margin:0 auto;padding:0 16px}
+
+
+
+.nav-bar{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.6);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.7)}
+.nav-inner{display:flex;justify-content:space-between;align-items:center;height:52px}
+.nav-logo{font-size:16px;font-weight:700;color:#1a1a2e;text-decoration:none;display:flex;align-items:center;gap:8px}
+.nav-logo .dot{width:8px;height:8px;background:#3b82f6;border-radius:2px;animation:pulse 2s ease infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.nav-links{display:flex;gap:16px;align-items:center}
+.nav-links a{font-size:13px;color:#64748b;text-decoration:none;transition:color .2s}
+.nav-links a:hover{color:#1a1a2e}
+
+.hero{padding:40px 0 20px;text-align:center}
+.hero h1{font-size:26px;font-weight:800;background:linear-gradient(135deg,#1e293b,#3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero .meta{font-size:14px;color:#64748b;margin-top:6px;display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.hero .meta span{display:flex;align-items:center;gap:4px}
+
+.glass{background:rgba(255,255,255,.6);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.7);border-radius:18px;box-shadow:0 4px 24px rgba(0,0,0,.06);margin-bottom:16px;overflow:hidden}
+.glass-header{padding:14px 20px;background:rgba(0,0,0,.02);border-bottom:1px solid rgba(0,0,0,.04);display:flex;justify-content:space-between;align-items:center}
+.glass-header h3{font-size:15px;font-weight:600}
+.glass-body{padding:20px}
+
+/* 上传区域 */
+.upload-zone{border:2px dashed rgba(59,130,246,.25);border-radius:14px;padding:36px 20px;text-align:center;cursor:pointer;transition:all .25s;position:relative}
+.upload-zone:hover,.upload-zone.drag{border-color:#3b82f6;background:rgba(59,130,246,.04)}
+.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.upload-zone .icon{font-size:36px;margin-bottom:8px}
+.upload-zone .title{font-size:15px;font-weight:600;color:#1e293b}
+.upload-zone .sub{font-size:12px;color:#94a3b8;margin-top:4px}
+
+.progress-bar{height:4px;background:rgba(0,0,0,.06);border-radius:2px;overflow:hidden;margin-top:12px;display:none}
+.progress-bar .fill{height:100%;background:linear-gradient(90deg,#3b82f6,#8b5cf6);border-radius:2px;width:0;transition:width .3s}
+
+/* 文件列表 */
+.file-item{display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(255,255,255,.5);border-radius:12px;margin-bottom:10px;transition:all .2s}
+.file-item:hover{background:rgba(255,255,255,.8);transform:translateY(-1px);box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.file-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;color:#fff}
+.file-icon.ppt{background:linear-gradient(135deg,#ef4444,#f97316)}
+.file-icon.pdf{background:linear-gradient(135deg,#ef4444,#b91c1c)}
+.file-icon.doc{background:linear-gradient(135deg,#3b82f6,#1d4ed8)}
+.file-icon.img{background:linear-gradient(135deg,#10b981,#059669)}
+.file-icon.other{background:linear-gradient(135deg,#6b7280,#4b5563)}
+.file-info{flex:1;min-width:0}
+.file-name{font-size:14px;font-weight:600;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-meta{font-size:12px;color:#94a3b8;margin-top:2px}
+.file-actions{display:flex;gap:6px;flex-shrink:0}
+.btn-sm{padding:6px 14px;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center}
+.btn-view{background:rgba(59,130,246,.1);color:#3b82f6}
+.btn-view:hover{background:rgba(59,130,246,.2)}
+.btn-dl{background:rgba(16,185,129,.1);color:#10b981}
+.btn-dl:hover{background:rgba(16,185,129,.2)}
+.btn-del{background:rgba(239,68,68,.1);color:#ef4444}
+.btn-del:hover{background:rgba(239,68,68,.2)}
+
+/* PDF 预览弹窗 */
+.modal-overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.show{display:flex}
+.modal-box{background:#fff;border-radius:16px;width:100%;max-width:900px;height:85vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal-top{padding:12px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #e5e7eb;flex-shrink:0}
+.modal-top h3{font-size:15px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;margin-right:12px}
+.modal-close{width:32px;height:32px;border:none;border-radius:8px;background:#f3f4f6;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;flex-shrink:0}
+.modal-close:hover{background:#e5e7eb}
+.modal-body{flex:1;overflow:hidden}
+.modal-body iframe{width:100%;height:100%;border:none}
+.modal-body img{width:100%;height:100%;object-fit:contain}
+
+.empty{text-align:center;padding:40px 20px;color:#94a3b8}
+.empty .icon{font-size:40px;margin-bottom:8px}
+.empty .text{font-size:14px}
+
+footer{text-align:center;padding:32px 0;font-size:12px;color:#94a3b8}
+
+/* 笔记区 */
+.notes-area{width:100%;min-height:180px;padding:14px 16px;border:1px solid rgba(0,0,0,.08);border-radius:12px;font-size:14px;line-height:1.8;outline:none;font-family:inherit;background:rgba(255,255,255,.4);resize:vertical;transition:border-color .2s,box-shadow .2s}
+.notes-area:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+.notes-area::placeholder{color:#94a3b8}
+.notes-footer{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+.notes-hint{font-size:12px;color:#94a3b8}
+.btn-save{padding:10px 24px;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff}
+.btn-save:hover{transform:translateY(-1px);box-shadow:0 4px 15px rgba(59,130,246,.35)}
+.btn-save:active{transform:scale(.97)}
+.btn-save.saved{background:linear-gradient(135deg,#10b981,#059669)}
+
+
+
+/* 加载遮罩 */
+.loading-overlay{position:fixed;inset:0;z-index:500;background:linear-gradient(135deg,#dbeafe 0%,#e0e7ff 20%,#cffafe 40%,#ede9fe 60%,#dbeafe 80%,#e0f2fe 100%);background-size:400% 400%;animation:gf 20s ease infinite;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .6s ease,visibility .6s}
+.loading-overlay.hide{opacity:0;visibility:hidden;pointer-events:none}
+.loading-overlay .spinner{width:44px;height:44px;border:3px solid rgba(59,130,246,.15);border-top-color:#3b82f6;border-radius:50%;animation:spin .8s linear infinite}
+.loading-overlay .loading-text{margin-top:16px;font-size:14px;color:#64748b;font-weight:500}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes gf{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+</style>
+    <link rel="stylesheet" href="/assets/common.css">
+<script>
+window.LAMNING_CONFIG = { loaderDelay: 300, staggerBase: 120 };
+</script>
+</head>
+<body>
+
+<!-- 加载遮罩 -->
+<div class="loading-overlay" id="loadingOverlay">
+<div class="spinner"></div>
+<div class="loading-text">正在加载课程资料...</div>
+</div>
+
+<div class="nav-bar"><div class="ctn nav-inner">
+<a href="/" class="nav-logo"><span class="dot"></span> LAMNING</a>
+<div class="nav-links"><a href="/schedule/">← 课程表</a><a href="/">首页</a></div>
+</div></div>
+
+<div class="ctn">
+<div class="hero slide-up">
+<h1 id="courseName"></h1>
+<div class="meta" id="courseMeta"></div>
+</div>
+
+<!-- 上传 -->
+<div class="glass slide-up">
+<div class="glass-header"><h3>📤 上传资料</h3></div>
+<div class="glass-body">
+<div class="upload-zone" id="uploadZone">
+<input type="file" id="fileInput" multiple>
+<div class="icon">📁</div>
+<div class="title">点击或拖拽上传</div>
+<div class="sub">支持 PPT/PPTX、PDF、DOC/DOCX、图片等，PPT 自动转 PDF 可预览</div>
+</div>
+<div class="progress-bar" id="progressBar"><div class="fill" id="progressFill"></div></div>
+</div>
+</div>
+
+<!-- 文件列表 -->
+<div class="glass slide-up">
+<div class="glass-header"><h3>📎 已上传资料</h3><span id="fileCount" style="font-size:12px;color:#94a3b8;"></span></div>
+<div class="glass-body" id="fileList">
+<div class="empty"><div class="icon">📭</div><div class="text">还没有上传资料</div></div>
+</div>
+</div>
+
+<!-- 课程笔记 -->
+<div class="glass slide-up">
+<div class="glass-header"><h3>📝 课程笔记</h3><span id="notesStatus" style="font-size:12px;color:#94a3b8;"></span></div>
+<div class="glass-body">
+<textarea class="notes-area" id="notesArea" placeholder="在这里记录课堂笔记、重点总结、学习心得..."></textarea>
+<div class="notes-footer">
+<span class="notes-hint">支持换行，自动保留格式</span>
+<button class="btn-save" id="btnSave" onclick="saveNotes()">💾 保存笔记</button>
+</div>
+</div>
+</div>
+</div>
+
+<footer>&copy; 2026 LAMNING</footer>
+
+<!-- PDF预览弹窗 -->
+<div class="modal-overlay" id="previewModal">
+<div class="modal-box">
+<div class="modal-top">
+<h3 id="previewTitle">预览</h3>
+<button class="modal-close" onclick="closePreview()">&times;</button>
+</div>
+<div class="modal-body" id="previewBody"></div>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/assets/common.js"></script>
+<script>
+(function(){
+var AUTH_TOKEN = sessionStorage.getItem('admin_token') || '';
+if (!AUTH_TOKEN) {
+  location.replace('/schedule/');
+  return;
+}
+function authHeaders(extra) {
+  var headers = extra || {};
+  headers['X-Token'] = AUTH_TOKEN;
+  return headers;
+}
+function escapeHtml(value) {
+  return String(value || '').replace(/[&<>"']/g, function(ch) {
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch];
+  });
+}
+var params = new URLSearchParams(location.search);
+var week = parseInt(params.get('week')) || 0;
+var day = parseInt(params.get('day')) || 0;
+var slot = parseInt(params.get('slot')) || 0;
+var courseName = params.get('name') || '未知课程';
+var teacher = params.get('teacher') || '';
+var loc = params.get('location') || '';
+var span = parseInt(params.get('span')) || 1;
+
+var dayNames = ['','周一','周二','周三','周四','周五','周六','周日'];
+var slotNames = ['1-2节','3-4节','5-6节','7-8节','9-10节'];
+
+document.getElementById('courseName').textContent = courseName;
+var metaHtml = '<span>📅 第' + week + '周 ' + dayNames[day] + '</span>' +
+  '<span>⏰ ' + slotNames[slot] + (span > 1 ? '~' + slotNames[Math.min(slot+span-1,4)] : '') + '</span>';
+if (teacher) metaHtml += '<span>👤 ' + teacher + '</span>';
+if (loc) metaHtml += '<span>📍 ' + loc + '</span>';
+document.getElementById('courseMeta').innerHTML = metaHtml;
+document.title = courseName + ' - 课程详情';
+
+/* 上传 */
+var zone = document.getElementById('uploadZone');
+var fileInput = document.getElementById('fileInput');
+zone.addEventListener('dragover', function(e) { e.preventDefault(); zone.classList.add('drag'); });
+zone.addEventListener('dragleave', function() { zone.classList.remove('drag'); });
+zone.addEventListener('drop', function(e) { e.preventDefault(); zone.classList.remove('drag'); uploadFiles(e.dataTransfer.files); });
+fileInput.addEventListener('change', function() { uploadFiles(fileInput.files); });
+
+function uploadFiles(files) {
+  if (!files || !files.length) return;
+  var bar = document.getElementById('progressBar');
+  var fill = document.getElementById('progressFill');
+  bar.style.display = 'block';
+  var total = files.length, done = 0, failed = 0;
+  for (var i = 0; i < files.length; i++) {
+    (function(file) {
+      var fd = new FormData();
+      fd.append('file', file);
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', '/api/course-files/' + week + '/' + day + '/' + slot + '/upload');
+      xhr.setRequestHeader('X-Token', AUTH_TOKEN);
+      xhr.upload.onprogress = function(e) {};
+      xhr.onload = function() {
+        done++;
+        if (xhr.status === 200) {
+          try { var r = JSON.parse(xhr.responseText); if (!r.ok) failed++; } catch(e) { failed++; }
+        } else { failed++; }
+        fill.style.width = (done / total * 100) + '%';
+        if (done >= total) {
+          setTimeout(function() { bar.style.display = 'none'; fill.style.width = '0'; }, 800);
+          loadFiles();
+          showToast(failed > 0 ? '❌ ' + failed + ' 个文件上传失败' : '✅ 上传成功');
+          fileInput.value = '';
+        }
+      };
+      xhr.onerror = function() { done++; failed++; showToast('❌ 网络错误'); };
+      xhr.send(fd);
+    })(files[i]);
+  }
+}
+
+/* 加载文件列表 */
+function loadFiles() {
+  fetch('/api/course-files/' + week + '/' + day + '/' + slot + '?t=' + Date.now(), {headers: authHeaders()})
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      var list = document.getElementById('fileList');
+      var count = document.getElementById('fileCount');
+      if (!d.ok || !d.files || d.files.length === 0) {
+        list.innerHTML = '<div class="empty"><div class="icon">📭</div><div class="text">还没有上传资料</div></div>';
+        count.textContent = '';
+        return;
+      }
+      count.textContent = d.files.length + ' 个文件';
+      list.innerHTML = d.files.map(function(f, idx) {
+        var ext = f.name.split('.').pop().toLowerCase();
+        var iconClass = 'other', emoji = '📄';
+        if (ext === 'ppt' || ext === 'pptx') { iconClass = 'ppt'; emoji = '📊'; }
+        else if (ext === 'pdf') { iconClass = 'pdf'; emoji = '📕'; }
+        else if (ext === 'doc' || ext === 'docx') { iconClass = 'doc'; emoji = '📘'; }
+        else if (['jpg','jpeg','png','gif','webp'].indexOf(ext) >= 0) { iconClass = 'img'; emoji = '🖼️'; }
+        var size = f.size < 1024*1024 ? (f.size/1024).toFixed(1) + ' KB' : (f.size/1024/1024).toFixed(1) + ' MB';
+        var date = new Date(f.time * 1000);
+        var dateStr = (date.getMonth()+1) + '/' + date.getDate() + ' ' + date.getHours() + ':' + (date.getMinutes()<10?'0':'') + date.getMinutes();
+        var safeName = f.name.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+        var displayName = escapeHtml(f.name);
+        var actions = '';
+        if (f.pdf_url) {
+          actions += '<button class="btn-sm btn-view" onclick="window._preview(\'' + f.pdf_url + '?preview=1\',\'' + safeName + '\')">👁 预览</button>';
+        } else if (['jpg','jpeg','png','gif','webp'].indexOf(ext) >= 0) {
+          actions += '<button class="btn-sm btn-view" onclick="window._preview(\'' + f.url + '?preview=1\',\'' + safeName + '\')">👁 预览</button>';
+        }
+        actions += '<button class="btn-sm btn-dl" onclick="window._download(\'' + f.url + '\',\'' + safeName + '\')">⬇ 下载</button>';
+        actions += '<button class="btn-sm btn-del" onclick="window._delete(\'' + f.id + '\')">🗑</button>';
+        return '<div class="file-item" style="animation-delay:' + (idx * 0.06) + 's">' +
+          '<div class="file-icon ' + iconClass + '">' + emoji + '</div>' +
+          '<div class="file-info"><div class="file-name">' + displayName + '</div>' +
+          '<div class="file-meta">' + size + ' · ' + dateStr + (f.pdf_url ? ' · 已转PDF' : '') + '</div></div>' +
+          '<div class="file-actions">' + actions + '</div></div>';
+      }).join('');
+      /* 文件项入场动画 */
+      var items = list.querySelectorAll('.file-item');
+      items.forEach(function(el, i) {
+        el.style.opacity = '0'; el.style.transform = 'translateY(12px)';
+        el.style.transition = 'opacity .35s ease, transform .35s ease';
+        setTimeout(function() { el.style.opacity = '1'; el.style.transform = 'translateY(0)'; }, i * 60 + 50);
+      });
+    });
+}
+
+window._delete = function(fid) {
+  if (!confirm('确定删除这个文件？')) return;
+  fetch('/api/course-files/' + week + '/' + day + '/' + slot + '/' + fid, { method: 'DELETE', headers: authHeaders() })
+    .then(function(r) { return r.json(); })
+    .then(function(d) { if (d.ok) { loadFiles(); showToast('已删除'); } });
+};
+
+/* PDF 预览 */
+window._preview = function(url, name) {
+  document.getElementById('previewTitle').textContent = name;
+  fetch(url, {headers: authHeaders()}).then(function(r) {
+    if (!r.ok) throw new Error('preview failed');
+    return r.blob();
+  }).then(function(blob) {
+    var objectUrl = URL.createObjectURL(blob);
+    var body = document.getElementById('previewBody');
+    body.dataset.objectUrl = objectUrl;
+    body.innerHTML = '<iframe src="' + objectUrl + '"></iframe>';
+    document.getElementById('previewModal').classList.add('show');
+  }).catch(function(){ showToast('❌ 预览失败'); });
+};
+window._download = function(url, name) {
+  fetch(url, {headers: authHeaders()}).then(function(r) {
+    if (!r.ok) throw new Error('download failed');
+    return r.blob();
+  }).then(function(blob) {
+    var objectUrl = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = objectUrl;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(objectUrl); }, 1000);
+  }).catch(function(){ showToast('❌ 下载失败'); });
+};
+window.closePreview = function() {
+  document.getElementById('previewModal').classList.remove('show');
+  var body = document.getElementById('previewBody');
+  if (body.dataset.objectUrl) URL.revokeObjectURL(body.dataset.objectUrl);
+  body.dataset.objectUrl = '';
+  body.innerHTML = '';
+};
+document.getElementById('previewModal').addEventListener('click', function(e) {
+  if (e.target === this) closePreview();
+});
+
+var showToast = LAMNING.showToast;
+
+/* 笔记 */
+var notesDirty = false;
+var saveTimer = null;
+
+function loadNotes() {
+  fetch('/api/course-notes/' + week + '/' + day + '/' + slot + '?t=' + Date.now(), {headers: authHeaders()})
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.ok) {
+        document.getElementById('notesArea').value = d.text || '';
+        if (d.text) document.getElementById('notesStatus').textContent = '已保存';
+      }
+    });
+}
+
+function saveNotes() {
+  var text = document.getElementById('notesArea').value;
+  var btn = document.getElementById('btnSave');
+  btn.textContent = '保存中...';
+  btn.disabled = true;
+  fetch('/api/course-notes/' + week + '/' + day + '/' + slot, {
+    method: 'POST',
+    headers: authHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify({ text: text })
+  }).then(function(r) { return r.json(); }).then(function(d) {
+    if (d.ok) {
+      btn.textContent = '✅ 已保存';
+      btn.classList.add('saved');
+      document.getElementById('notesStatus').textContent = '已保存';
+      notesDirty = false;
+      setTimeout(function() { btn.textContent = '💾 保存笔记'; btn.classList.remove('saved'); btn.disabled = false; }, 1500);
+    } else {
+      btn.textContent = '💾 保存笔记'; btn.disabled = false;
+      showToast('❌ 保存失败');
+    }
+  }).catch(function() {
+    btn.textContent = '💾 保存笔记'; btn.disabled = false;
+    showToast('❌ 网络错误');
+  });
+}
+
+/* Ctrl+S 快捷键保存 */
+document.getElementById('notesArea').addEventListener('keydown', function(e) {
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); saveNotes(); }
+});
+/* 标记已修改 */
+document.getElementById('notesArea').addEventListener('input', function() {
+  notesDirty = true;
+  document.getElementById('notesStatus').textContent = '未保存';
+});
+/* 离开前提醒 */
+window.addEventListener('beforeunload', function(e) {
+  if (notesDirty) { e.preventDefault(); e.returnValue = ''; }
+});
+
+/* 页面加载完成：移除 loading，有序入场 */
+function reveal() {
+  var overlay = document.getElementById('loadingOverlay');
+  overlay.classList.add('hide');
+  var els = document.querySelectorAll('.slide-up');
+  els.forEach(function(el, i) {
+    setTimeout(function() { el.classList.add('show'); }, i * 120 + 200);
+  });
+  loadFiles();
+  loadNotes();
+}
+if (document.readyState === 'complete') { reveal(); }
+else { window.addEventListener('load', function(){ setTimeout(reveal, 300); }); }
+
+
+window.saveNotes = saveNotes;
+window.closePreview = closePreview;
+})();
+</script>
+</body>
+</html>
+

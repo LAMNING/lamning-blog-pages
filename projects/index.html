@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAMNING - 历史项目</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;color:#1a1a2e;line-height:1.6;min-height:100vh;overflow-x:hidden}
+        .animated-bg{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;background:linear-gradient(135deg,#dbeafe 0%,#e0e7ff 20%,#cffafe 40%,#ede9fe 60%,#dbeafe 80%,#e0f2fe 100%);background-size:400% 400%;animation:gf 12s ease infinite}
+        @keyframes gf{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+        .ctn{width:100%;max-width:960px;margin:0 auto;padding:0 24px}
+        .nav-bar{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.6);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.7)}
+        .nav-inner{display:flex;justify-content:space-between;align-items:center;height:60px}
+        .nav-logo{font-size:18px;font-weight:700;color:#1a1a2e;text-decoration:none;display:flex;align-items:center;gap:10px}
+        .nav-logo .dot{width:10px;height:10px;background:#3b82f6;border-radius:2px}
+        .nav-links{display:flex;gap:16px}
+        .nav-links a{font-size:14px;font-weight:500;color:#64748b;text-decoration:none;transition:color .2s}
+        .nav-links a:hover{color:#1a1a2e}
+        .glass-card{background:rgba(255,255,255,.55);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.7);border-radius:18px;box-shadow:0 4px 30px rgba(0,0,0,.06);transition:all .3s ease}
+        .glass-card:hover{box-shadow:0 8px 40px rgba(0,0,0,.1);transform:translateY(-3px)}
+        .tag-stopped{display:inline-block;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600;letter-spacing:.5px;background:rgba(254,242,242,.9);color:#dc2626;border:1px solid rgba(254,202,202,.5)}
+        .back-link{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:#94a3b8;text-decoration:none;margin-bottom:28px;transition:color .2s}
+        .back-link:hover{color:#475569}
+        .project-card{display:block;padding:32px;cursor:pointer;text-decoration:none;color:inherit;position:relative;overflow:hidden}
+        .project-card:active{transform:scale(.985);transition:transform .1s}
+        .card-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:18px}
+        footer{background:rgba(255,255,255,.4);backdrop-filter:blur(16px);border-top:1px solid rgba(255,255,255,.5)}
+    
+</style>
+    <link rel="stylesheet" href="/assets/common.css">
+</head>
+<body>
+    <div class="page-loader" id="pageLoader"><div class="loader-ring"></div><div class="loader-label">加载中...</div></div><div class="animated-bg"></div>
+
+    <div class="nav-bar">
+        <div class="ctn nav-inner">
+            <a href="/" class="nav-logo"><span class="dot"></span> LAMNING</a>
+            <div class="nav-links">
+                <a href="/">首页</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="ctn slide-up" style="padding-top:40px;padding-bottom:80px;">
+        <a href="/" class="back-link">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+            返回首页
+        </a>
+
+        <h1 style="font-size:28px;font-weight:700;margin-bottom:8px;">历史项目</h1>
+        <p style="font-size:14px;color:#64748b;margin-bottom:32px;">曾经构建的项目归档，记录每一段开发历程与技术积累。</p>
+
+        <a href="/health/" class="glass-card project-card" style="margin-bottom:20px;">
+            <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+                <div class="card-icon" style="background:rgba(239,246,255,.8);flex-shrink:0;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                </div>
+                <div style="flex:1;min-width:200px;">
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+                        <h2 style="font-size:18px;font-weight:600;color:#0f172a;">个人健康监控</h2>
+                        <span class="tag-stopped">已停更</span>
+                    </div>
+                    <p style="font-size:14px;color:#64748b;line-height:1.7;">基于小米穿戴设备的实时健康数据大屏，展示睡眠、心率、血氧等指标。V3.0 数据接口已冻结，仅作展示用途。</p>
+                    <div style="margin-top:12px;font-size:13px;color:#94a3b8;display:flex;align-items:center;gap:4px;">
+                        查看演示
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                    </div>
+                </div>
+            </div>
+        </a>
+
+        <div class="glass-card" style="padding:48px 32px;text-align:center;">
+            <div style="font-size:28px;margin-bottom:12px;">🏗️</div>
+            <div style="font-size:15px;color:#94a3b8;">更多历史项目正在整理中...</div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="ctn" style="display:flex;justify-content:space-between;align-items:center;height:60px;font-size:12px;color:#94a3b8;">
+            <span>&copy; 2026 LAMNING. All rights reserved.</span>
+            <a href="/" style="color:#94a3b8;text-decoration:none;">返回首页</a>
+        </div>
+    </footer>
+<script>
+
+</script>
+    <script src="/assets/common.js"></script>
+</body>
+</html>
